@@ -15,3 +15,7 @@ textarea {
     max-width: 500px;
     height: 100px;
 }
+
+.center {
+    text-align: center;
+}

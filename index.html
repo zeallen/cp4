@@ -10,9 +10,62 @@
 <body>
   <h1>XKCD Browser</h1>
   <div id="app">
+    <div v-if="loading">
+      <p>Loading...</p>
+    </div>
+    <div v-else>
+      <p>
+        <button v-on:click="previousComic">Previous</button>
+        <button v-on:click="nextComic">Next</button>
+      </p>
+      <p>
+
+        <button v-on:click="firstComic">First</button>
+        <button v-on:click="randomComic">Random</button>
+        <button v-on:click="lastComic">Last</button>
+
+      </p>
+      <h2>{{current.safe_title}}</h2>
+      <img v-bind:src="current.img" v-bind:alt="current.alt">
+      <p>{{current.alt}}</p>
+      <p><i>#{{current.num}}, drawn on {{month}} {{current.day}}, {{current.year}}</i></p>
+
+      <p>
+        <star-rating :increment="0.5" active-color="#ff0000" :show-rating="false" @rating-selected="setRating">
+        </star-rating>
+      </p>
+      <div v-if="hasRatings">
+        <p>Average Rating: {{ratings[current.num].average}}</p>
+      </div>
+      <div v-else>
+        <p>No ratings yet</p>
+      </div>
+
+      <h3>Add a Comment</h3>
+      <form v-on:submit.prevent="addComment">
+        <input v-model="addedName" placeholder="Name"></p>
+        <textarea v-model="addedComment"></textarea>
+        <br />
+        <button type="submit">Comment</button>
+      </form>
+      <h3>Comments</h3>
+      <div v-for="comment in comments[number]">
+        <hr>
+        <p>{{comment.text}}</p>
+        <p><i>-- {{comment.author}}, posted on {{comment.date}}</i></p>
+      </div>
+
+    </div>
+
+    <div class="center">
+    <p><a href="https://github.com/BYU-CS-260-Winter-2019/lab-3-zeallen">Github Repository Link</a></p>
+    </div>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.2/dist/vue.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+  <script src="https://unpkg.com/vue-star-rating/dist/star-rating.min.js"></script>
   <script src="/script.js"></script>
 </body>
 
