@@ -1,119 +1,130 @@
-Vue.component('star-rating', VueStarRating.default);
+//Vue.component('star-rating', VueStarRating.default);
 
 let app = new Vue({
   el: '#app',
   data: {
-    number: '',
-    current: {
-      title: '',
-      img: '',
-      alt: '',
-      max: '',
-    },
-    loading: true,
-    hasRatings: false,
-    addedName: '',
-    addedComment: '',
-    comments: {},
-    ratings: {},
-  },
-  created() {
-    this.xkcd();
-  },
-  computed: {
-    month() {
-      var month = new Array;
-      if (this.current.month === undefined)
-        return '';
-      month[0] = "January";
-      month[1] = "February";
-      month[2] = "March";
-      month[3] = "April";
-      month[4] = "May";
-      month[5] = "June";
-      month[6] = "July";
-      month[7] = "August";
-      month[8] = "September";
-      month[9] = "October";
-      month[10] = "November";
-      month[11] = "December";
-      return month[this.current.month - 1];
-    }
-  },
-  watch: {
-    number(value, oldvalue) {
-      if (oldvalue === '') {
-        this.max = value;
-      } else {
-        this.xkcd();
+    frontPage: true,
+    editingQuestions: false,
+    onAnswer: false,
+    currentQuestion: 0,
+    gotCorrect: 0,
+    failString: "",
+    questions: [
+      {
+        questionString: "Sample question: Choose B",
+        optionA: "Nope",
+        optionB: "Yes",
+        optionC: "Nope",
+        correctChoice: 2,
       }
-    },
+    ],
+    questionString: "",
+    optionA: "",
+    optionB: "",
+    optionC: "",
+    correctChoice: 1,
+    isCorrect: false,
   },
   methods: {
-    async xkcd() {
-      try {
-        this.loading = true;
-        const response = await axios.get('https://xkcd.now.sh/' + this.number);
-        this.current = response.data;
-        this.loading = false;
-        this.number = response.data.num;
-      } catch (error) {
-        this.number = this.max;
+    beginGame() {
+      if (this.questions.length == 0) {
+        this.failString = "You need to make some questions before running a trivia session."
+      }
+      else {
+        this.frontPage = false;
+        this.currentQuestion = 0;
+        this.getNextQuestion();
+        this.gotCorrect = 0;
       }
     },
-    previousComic() {
-      this.number = this.current.num - 1;
-      if (this.number < 1)
-        this.number = 1;
+
+    finishQuiz() {
+      this.failString = "You got " + this.gotCorrect + " out of " + this.currentQuestion + " questions correct!";
+      if (this.gotCorrect === this.currentQuestion)
+        this.failString += " Great job, you got them all right!";
+      if (this.gotCorrect === 0)
+        this.failString += " Wow, you didn't get any right. That's just sad!"
+      this.questionString = "";
+      this.optionA = "";
+      this.optionB = "";
+      this.optionC = "";
+      this.frontPage = true;
+      this.onAnswer = false;
     },
 
-    nextComic() {
-      this.number = this.current.num + 1;
-      if (this.number > this.max)
-        this.number = this.max
+    getNextQuestion() {
+      if (this.questions[this.currentQuestion] == undefined) {
+        this.finishQuiz();
+        return;
+      }
+      this.questionString = this.questions[this.currentQuestion].questionString;
+      this.optionA = this.questions[this.currentQuestion].optionA;
+      this.optionB = this.questions[this.currentQuestion].optionB;
+      this.optionC = this.questions[this.currentQuestion].optionC;
+      this.correctChoice = this.questions[this.currentQuestion].correctChoice;
+      this.currentQuestion++;
+      this.onAnswer = false;
     },
 
-    firstComic() {
-      this.number = 1;
+    checkAnswer(val) {
+      if (this.onAnswer === true)
+        return;
+
+      if (val === this.correctChoice) {
+        this.failString = "You are correct!";
+        this.onAnswer = true;
+        this.gotCorrect++;
+      }
+      else {
+        this.failString = "Sorry, the correct answer is " + this.getCorrectChoice();
+        this.onAnswer = true;
+      }
     },
 
-    lastComic() {
-      this.number = this.max;
+    getCorrectChoice() {
+      if (this.correctChoice === 1)
+        return "A";
+      else if (this.correctChoice === 2)
+        return "B";
+      else
+        return "C";
     },
 
-    getRandom(min, max) {
-      min = Math.ceil(min);
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum and minimum are inclusive
+    editQuestions() {
+      this.editingQuestions = true;
+      this.frontPage = false;
     },
 
-    randomComic() {
-      this.number = this.getRandom(1, this.max);
+    toHome() {
+      this.editingQuestions = false;
+      this.frontPage = true;
+      this.failString = "";
     },
 
-    setRating(rating) {
-      if (!(this.number in this.ratings))
-        Vue.set(this.ratings, this.number, {
-          sum: 0,
-          total: 0,
-          average: 0,
-        });
-      this.hasRatings = true;
-      this.ratings[this.number].sum += rating;
-      this.ratings[this.number].total += 1;
-      this.ratings[this.number].average = (this.ratings[this.number].sum/this.ratings[this.number].total).toFixed(2);
-    },
-
-    addComment() {
-      if (!(this.number in this.comments))
-        Vue.set(this.comments, this.number, new Array);
-      this.comments[this.number].push({
-        author: this.addedName,
-        text: this.addedComment,
-        date: moment(new Date()).format('LLL'),
+    addQuestion() {
+      if (this.questionString === "")
+        return;
+      this.questions.push({
+        questionString: this.questionString,
+        optionA: this.optionA,
+        optionB: this.optionB,
+        optionC: this.optionC,
+        correctChoice: this.correctChoice,
       });
-      this.addedName = '';
-      this.addedComment = '';
+      this.questionString = '';
+      this.optionA = '';
+      this.optionB = '';
+      this.optionC = '';
     },
+
+    removeQuestion(item) {
+      var index = this.questions.indexOf(item);
+      if (index > -1)
+        this.questions.splice(index, 1);
+    },
+
+    changeCorrectAnswer(num) {
+      this.correctChoice = num;
+    }
   }
-});
+})

@@ -2,69 +2,97 @@
 <html>
 
 <head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <link rel="stylesheet" href="/styles.css" />
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
-  <title>XKCD Browser</title>
+  <title>Trivia Maker</title>
 </head>
 
 <body>
-  <h1>XKCD Browser</h1>
   <div id="app">
-    <div v-if="loading">
-      <p>Loading...</p>
+    <div v-if="frontPage" class="center homepage">
+      <p>{{failString}}</p>
+      <h1>Super Trivia</h1>
+      <p>This is the ultimate trivia game! Unfortunately, I am bad at coming up with trivia, so you get to make your own
+        trivia questions.</p>
+      <p>
+        <button v-on:click="beginGame">Begin the trivia session</button>
+      </p>
+      <p>
+        <button v-on:click="editQuestions">Edit the questions</button>
+      </p>
     </div>
     <div v-else>
-      <p>
-        <button v-on:click="previousComic">Previous</button>
-        <button v-on:click="nextComic">Next</button>
-      </p>
-      <p>
 
-        <button v-on:click="firstComic">First</button>
-        <button v-on:click="randomComic">Random</button>
-        <button v-on:click="lastComic">Last</button>
-
-      </p>
-      <h2>{{current.safe_title}}</h2>
-      <img v-bind:src="current.img" v-bind:alt="current.alt">
-      <p>{{current.alt}}</p>
-      <p><i>#{{current.num}}, drawn on {{month}} {{current.day}}, {{current.year}}</i></p>
-
-      <p>
-        <star-rating :increment="0.5" active-color="#ff0000" :show-rating="false" @rating-selected="setRating">
-        </star-rating>
-      </p>
-      <div v-if="hasRatings">
-        <p>Average Rating: {{ratings[current.num].average}}</p>
+      <div v-if="editingQuestions">
+        <h1>Question editor</h1>
+        <p><button v-on:click="toHome">Back to home</button></p>
+        <h3>Add a question</h3>
+        <form v-on:submit.prevent="addQuestion">
+          <textarea v-model="questionString" placeholder="Question"></textarea></p>
+          <input v-model="optionA" placeholder="Option A"></p>
+          <input v-model="optionB" placeholder="Option B"></p>
+          <input v-model="optionC" placeholder="Option C"></p>
+          <p>Correct Answer:</p>
+          <button v-on:click="changeCorrectAnswer(1)">Option A</button>
+          <button v-on:click="changeCorrectAnswer(2)">Option B</button>
+          <button v-on:click="changeCorrectAnswer(3)">Option C</button>
+          <br />
+        </form>
+        <p></p>
+        <h3>Questions</h3>
+        <div v-for="question in questions">
+          <hr>
+          <p>{{question.questionString}} <button v-on:click="removeQuestion(question)">X</button></p>
+          <ul>
+            <li>{{question.optionA}} <span v-if="question.correctChoice === 1">&#10003;</span></li>
+            <li>{{question.optionB}} <span v-if="question.correctChoice === 2">&#10003;</span></li>
+            <li>{{question.optionC}} <span v-if="question.correctChoice === 3">&#10003;</span></li>
+          </ul>
+        </div>
       </div>
-      <div v-else>
-        <p>No ratings yet</p>
-      </div>
 
-      <h3>Add a Comment</h3>
-      <form v-on:submit.prevent="addComment">
-        <input v-model="addedName" placeholder="Name"></p>
-        <textarea v-model="addedComment"></textarea>
-        <br />
-        <button type="submit">Comment</button>
-      </form>
-      <h3>Comments</h3>
-      <div v-for="comment in comments[number]">
-        <hr>
-        <p>{{comment.text}}</p>
-        <p><i>-- {{comment.author}}, posted on {{comment.date}}</i></p>
-      </div>
-      <div class="center">
-        <p><a href="https://github.com/BYU-CS-260-Winter-2019/lab-3-zeallen">Github Repository Link</a></p>
+      <div v-else class="middle">
+        <div v-if="onAnswer">
+          <p>{{failString}}</p>
+          <button v-on:click="getNextQuestion">Next Question</button>
+          <p></p>
+        </div>
+        <p>{{questionString}}</p>
+        <button v-on:click="checkAnswer(1)">{{optionA}}</button>
+        <button v-on:click="checkAnswer(2)">{{optionB}}</button>
+        <button v-on:click="checkAnswer(3)">{{optionC}}</button>
       </div>
     </div>
+
   </div>
+
+
+  <nav class="navbar fixed-bottom navbar-light bg-light" class="center">
+    <a class="navbar-brand" href="https://github.com/zeallen/cp3">Github Repository</a>
+  </nav>
+
+  <div class="invisible">
+    <h1>This is nothing</h1>
+  </div>
+
 
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.2/dist/vue.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
   <script src="https://unpkg.com/vue-star-rating/dist/star-rating.min.js"></script>
   <script src="/script.js"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+
 </body>
 
 </html>
