@@ -1,3 +1,3 @@
-# CP 3: Trivia Game
+# CP 4: Trivia Game
 
-This is a website to make trivia quizzes.
+This is a website to make trivia quizzes. It stores the questions on a database.
