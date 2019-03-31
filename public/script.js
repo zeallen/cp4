@@ -9,15 +9,7 @@ let app = new Vue({
     currentQuestion: 0,
     gotCorrect: 0,
     failString: "",
-    questions: [
-      {
-        questionString: "Sample question: Choose B",
-        optionA: "Nope",
-        optionB: "Yes",
-        optionC: "Nope",
-        correctChoice: 2,
-      }
-    ],
+    questions: [],
     questionString: "",
     optionA: "",
     optionB: "",
@@ -25,6 +17,11 @@ let app = new Vue({
     correctChoice: 1,
     isCorrect: false,
   },
+
+  created() {
+    this.getQuestions();
+  },
+
   methods: {
     beginGame() {
       if (this.questions.length == 0) {
@@ -101,26 +98,45 @@ let app = new Vue({
       this.failString = "";
     },
 
-    addQuestion() {
-      if (this.questionString === "")
-        return;
-      this.questions.push({
-        questionString: this.questionString,
-        optionA: this.optionA,
-        optionB: this.optionB,
-        optionC: this.optionC,
-        correctChoice: this.correctChoice,
-      });
-      this.questionString = '';
-      this.optionA = '';
-      this.optionB = '';
-      this.optionC = '';
+    async getQuestions() {
+      try {
+        let response = await axios.get("http://localhost:3000/api/questions");
+        this.questions = response.data;
+        return true;
+      } catch (error) {
+        console.log(error);
+      }
     },
 
-    removeQuestion(item) {
-      var index = this.questions.indexOf(item);
-      if (index > -1)
-        this.questions.splice(index, 1);
+    async addQuestion() {
+      if (this.questionString === "")
+        return;
+      try {
+        let response = await axios.post("http://localhost:3000/api/questions", {
+          questionString: this.questionString,
+          optionA: this.optionA,
+          optionB: this.optionB,
+          optionC: this.optionC,
+          correctChoice: this.correctChoice,
+        });
+        this.questionString = '';
+        this.optionA = '';
+        this.optionB = '';
+        this.optionC = '';
+        this.getQuestions();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    async removeQuestion(question) {
+      try {
+        let response = axios.delete("http://localhost:3000/api/questions/" + question.id);
+        this.getQuestions();
+        return true;
+      } catch (error) {
+        console.log(error);
+      }
     },
 
     changeCorrectAnswer(num) {
