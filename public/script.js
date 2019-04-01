@@ -100,7 +100,7 @@ let app = new Vue({
 
     async getQuestions() {
       try {
-        let response = await axios.get("http://localhost:3000/api/questions");
+        let response = await axios.get("http://localhost:4000/api/questions");
         this.questions = response.data;
         return true;
       } catch (error) {
@@ -112,7 +112,7 @@ let app = new Vue({
       if (this.questionString === "")
         return;
       try {
-        let response = await axios.post("http://localhost:3000/api/questions", {
+        let response = await axios.post("http://localhost:4000/api/questions", {
           questionString: this.questionString,
           optionA: this.optionA,
           optionB: this.optionB,
@@ -131,7 +131,7 @@ let app = new Vue({
 
     async removeQuestion(question) {
       try {
-        let response = axios.delete("http://localhost:3000/api/questions/" + question.id);
+        let response = axios.delete("http://localhost:4000/api/questions/" + question.id);
         this.getQuestions();
         return true;
       } catch (error) {
